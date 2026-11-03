@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Record Management System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f2f5fa;
+            color: #333;
+        }
+
+        header {
+            background: #182848;
+            color: white;
+            padding: 22px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 25px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 35px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px #00000012;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #182848;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button, .btn {
+            display: inline-block;
+            padding: 10px 17px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            background: #182848;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .add-btn {
+            background: #198754;
+        }
+
+        .edit-btn {
+            background: #0d6efd;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 13px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #182848;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #d1e7dd;
+            color: #0f5132;
+            border-radius: 5px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Student Record Management System</h1>
+    <p>Manage Student Information Easily</p>
+</header>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if form_mode %}
+
+    <div class="card">
+        <h2>{{ "Edit Student" if student else "Add New Student" }}</h2>
+
+        <form method="POST"
+              action="{{ url_for('edit_student', sid=student.student_id) if student else url_for('add_student') }}">
+
+            <label>Student Name</label>
+            <input type="text" name="name"
+                   value="{{ student.name if student else '' }}"
+                   placeholder="Enter student name" required>
+
+            <label>Email Address</label>
+            <input type="email" name="email"
+                   value="{{ student.email if student else '' }}"
+                   placeholder="Enter email" required>
+
+            <label>Course</label>
+            <input type="text" name="course"
+                   value="{{ student.course if student else '' }}"
+                   placeholder="Enter course" required>
+
+            <label>Semester</label>
+            <input type="number" name="semester"
+                   value="{{ student.semester if student else '' }}"
+                   min="1" max="12" required>
+
+            <button type="submit" class="add-btn">Save Student</button>
+            <a href="{{ url_for('index') }}" class="btn cancel-btn">Cancel</a>
+
+        </form>
+    </div>
+
+    {% else %}
+
+    <div class="card">
+        <h2>Student Dashboard</h2>
+
+        <a href="{{ url_for('add_student') }}" class="btn add-btn">
+            + Add New Student
+        </a>
+
+        <form method="GET" action="{{ url_for('index') }}"
+              class="search-box" style="margin-top: 20px;">
+
+            <input type="text" name="search"
+                   placeholder="Search by name, email or course"
+                   value="{{ request.args.get('search', '') }}">
+
+            <button type="submit">Search</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.student_id }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.course }}</td>
+                    <td>{{ student.semester }}</td>
+
+                    <td>
+                        <div class="actions">
+                            <a href="{{ url_for('edit_student', sid=student.student_id) }}"
+                               class="btn edit-btn">Edit</a>
+
+                            <form method="POST"
+                                  action="{{ url_for('delete_student', sid=student.student_id) }}"
+                                  onsubmit="return confirm('Delete this student?');">
+
+                                <button type="submit" class="delete-btn">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">No student records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<footer>
+    Student Record Management System | Python, Flask & MySQL
+</footer>
+
+</body>
+</html>
